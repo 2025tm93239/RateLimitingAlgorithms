@@ -1,6 +1,5 @@
 namespace RateLimitingAlgorithms;
 
-// Token Bucket - each request needs 1 token; tokens refill over time
 public class TokenBucketRateLimiter
 {
     private int maxTokens;
@@ -17,7 +16,6 @@ public class TokenBucketRateLimiter
         lastRefillTime = DateTime.Now;
     }
 
-    // returns true if request is allowed, false if rate limit exceeded
     public bool AllowRequest()
     {
         lock (lockObj)

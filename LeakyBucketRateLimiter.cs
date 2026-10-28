@@ -1,6 +1,5 @@
 namespace RateLimitingAlgorithms;
 
-// Leaky Bucket - requests add water; bucket leaks at fixed rate
 public class LeakyBucketRateLimiter
 {
     private int maxCapacity;

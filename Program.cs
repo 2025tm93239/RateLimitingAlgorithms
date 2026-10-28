@@ -26,6 +26,8 @@ namespace RateLimitingAlgorithms
         static void TestTokenBucket()
         {
             Console.WriteLine("\n--- Token Bucket ---");
+
+
             // bucket size 5, add 2 tokens every second
             TokenBucketRateLimiter limiter = new TokenBucketRateLimiter(5, 2);
 
