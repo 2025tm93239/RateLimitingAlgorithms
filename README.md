@@ -1,34 +1,43 @@
-# SEZG504 Assignment - Question 3
+# SEZG504 Assignment — Question 3
 
-Name: (your name)  
-Roll No: (your roll number)
-
-## Problem
-
-Implement Token Bucket and Leaky Bucket rate limiting algorithms in C#.
+Token Bucket and Leaky Bucket rate limiting in C#.
 
 ## Files
 
-- `TokenBucketRateLimiter.cs` - Token bucket logic
-- `LeakyBucketRateLimiter.cs` - Leaky bucket logic
-- `Program.cs` - small program to test both algorithms
+- `TokenBucketRateLimiter.cs`
+- `LeakyBucketRateLimiter.cs`
+- `Program.cs` — console demo (Allowed / Blocked)
+- `Screenshots and Demo video/` — assignment captures
 
-## How to run (Visual Studio)
+## How to run
 
-1. Open `RateLimitingAlgorithms.sln` in Visual Studio 2022
-2. Press F5 to run
-3. Check console output for Allowed / Blocked requests
+**Visual Studio:** open `RateLimitingAlgorithms.sln` → F5.
 
-## How to run (command line)
+**CLI** (requires .NET 8 SDK):
 
-```
+```powershell
+cd D:\Bits-pilani\API\RateLimitingAlgorithms
 dotnet run --project RateLimitingAlgorithms.csproj
 ```
 
-Need .NET 8 SDK installed.
-
 ## Brief explanation
 
-**Token Bucket:** We start with full tokens. Each allowed request uses 1 token. Tokens are added back slowly (refill rate). If no tokens left, request is blocked.
+**Token Bucket:** Starts with a full bucket of tokens. Each allowed request uses one token; tokens refill at a fixed rate. No tokens → request blocked.
 
-**Leaky Bucket:** Each request adds water to the bucket. Water leaks out at a fixed rate. If bucket is full, new request is blocked.
+**Leaky Bucket:** Requests fill the bucket; output “leaks” at a fixed rate. Bucket full → new request blocked.
+
+## Demo video
+
+Local file: [`Screenshots and Demo video/Question 3 Short Demo Recording.mp4`](./Screenshots%20and%20Demo%20video/Question%203%20Short%20Demo%20Recording.mp4)
+
+## Screenshots
+
+Folder: [`Screenshots and Demo video/`](./Screenshots%20and%20Demo%20video/)
+
+| | |
+|:---:|:---:|
+| ![Picture 26](./Screenshots%20and%20Demo%20video/Picture26.png) | ![Picture 27](./Screenshots%20and%20Demo%20video/Picture27.png) |
+| ![Picture 28](./Screenshots%20and%20Demo%20video/Picture28.png) | ![Picture 29](./Screenshots%20and%20Demo%20video/Picture29.png) |
+| ![Picture 30](./Screenshots%20and%20Demo%20video/Picture30.png) | ![Picture 31](./Screenshots%20and%20Demo%20video/Picture31.png) |
+
+![Picture 32](./Screenshots%20and%20Demo%20video/Picture32.png)
