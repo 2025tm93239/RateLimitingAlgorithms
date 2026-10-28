@@ -1,55 +1,84 @@
 using RateLimitingAlgorithms;
 
-Console.WriteLine("=== Question 3: Token Bucket & Leaky Bucket (C#) ===\n");
-
-DemoTokenBucket();
-Console.WriteLine();
-DemoLeakyBucket();
-
-static void DemoTokenBucket()
+namespace RateLimitingAlgorithms
 {
-    // Capacity 5, refill 2 tokens/sec → burst of 5, then ~2 req/sec
-    var limiter = new TokenBucketRateLimiter(capacity: 5, refillRatePerSecond: 2);
-
-    Console.WriteLine("Token bucket (capacity=5, refill=2/sec)");
-    Console.WriteLine("Sending 8 requests immediately:");
-
-    for (var i = 1; i <= 8; i++)
+    class Program
     {
-        var allowed = limiter.TryAcquire();
-        Console.WriteLine($"  Request {i}: {(allowed ? "ALLOWED" : "REJECTED")}");
-    }
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Implementedd TokenBucket and Leaky Bucket rate limiting algorithms in Java/Python/c#");
+          
+            Console.WriteLine("Token Bucket and Leaky Bucket Rate Limiting");
+            
+            Console.WriteLine("-------------------------------------------");
 
-    Console.WriteLine("Waiting 1 second for refill...");
-    Thread.Sleep(1000);
+            TestTokenBucket();
+            Console.WriteLine();
+            TestLeakyBucket();
 
-    for (var i = 9; i <= 11; i++)
-    {
-        var allowed = limiter.TryAcquire();
-        Console.WriteLine($"  Request {i}: {(allowed ? "ALLOWED" : "REJECTED")}");
-    }
-}
+            Console.WriteLine();
+            
+            
+            Console.WriteLine("Press Enter to exit...");
+            Console.ReadLine();
+        }
 
-static void DemoLeakyBucket()
-{
-    // Capacity 3, leak 1 req/sec → smooth at 1/sec, small queue
-    var limiter = new LeakyBucketRateLimiter(capacity: 3, leakRatePerSecond: 1);
+        static void TestTokenBucket()
+        {
+            Console.WriteLine("\n--- Token Bucket ---");
+            // bucket size 5, add 2 tokens every second
+            TokenBucketRateLimiter limiter = new TokenBucketRateLimiter(5, 2);
 
-    Console.WriteLine("Leaky bucket (capacity=3, leak=1/sec)");
-    Console.WriteLine("Sending 5 requests immediately:");
+            Console.WriteLine("Sending 8 requests at once:");
+            for (int i = 1; i <= 8; i++)
+            {
+                bool ok = limiter.AllowRequest();
+                if (ok)
+                    Console.WriteLine("Request " + i + " : Allowed");
+                else
+                    Console.WriteLine("Request " + i + " : Blocked");
+            }
 
-    for (var i = 1; i <= 5; i++)
-    {
-        var allowed = limiter.TryAcquire();
-        Console.WriteLine($"  Request {i}: {(allowed ? "ALLOWED" : "REJECTED")}");
-    }
+            Console.WriteLine("Waiting 1 second...");
+            Thread.Sleep(1000);
 
-    Console.WriteLine("Waiting 2 seconds for leak...");
-    Thread.Sleep(2000);
+            for (int i = 9; i <= 11; i++)
+            {
+                bool ok = limiter.AllowRequest();
+                if (ok)
+                    Console.WriteLine("Request " + i + " : Allowed");
+                else
+                    Console.WriteLine("Request " + i + " : Blocked");
+            }
+        }
 
-    for (var i = 6; i <= 8; i++)
-    {
-        var allowed = limiter.TryAcquire();
-        Console.WriteLine($"  Request {i}: {(allowed ? "ALLOWED" : "REJECTED")}");
+        static void TestLeakyBucket()
+        {
+            Console.WriteLine("\n--- Leaky Bucket ---");
+            // max 3 in bucket, leaks 1 per second
+            LeakyBucketRateLimiter limiter = new LeakyBucketRateLimiter(3, 1);
+
+            Console.WriteLine("Sending 5 requests at once:");
+            for (int i = 1; i <= 5; i++)
+            {
+                bool ok = limiter.AllowRequest();
+                if (ok)
+                    Console.WriteLine("Request " + i + " : Allowed");
+                else
+                    Console.WriteLine("Request " + i + " : Blocked");
+            }
+
+            Console.WriteLine("Waiting 2 seconds...");
+            Thread.Sleep(2000);
+
+            for (int i = 6; i <= 8; i++)
+            {
+                bool ok = limiter.AllowRequest();
+                if (ok)
+                    Console.WriteLine("Request " + i + " : Allowed");
+                else
+                    Console.WriteLine("Request " + i + " : Blocked");
+            }
+        }
     }
 }
