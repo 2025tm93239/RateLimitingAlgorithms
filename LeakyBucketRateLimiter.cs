@@ -1,62 +1,52 @@
 namespace RateLimitingAlgorithms;
 
-public sealed class LeakyBucketRateLimiter : IRateLimiter
+// Leaky Bucket - requests add water; bucket leaks at fixed rate
+public class LeakyBucketRateLimiter
 {
-    private readonly int _capacity;
+    private int maxCapacity;
+    private double leakRatePerSec;
+    private double waterInBucket;
+    private DateTime lastLeakTime;
+    private object lockObj = new object();
 
-    
-    private readonly double _leakRatePerSecond;
-    private double _waterLevel;
-    private long _lastLeakTicks;
-
-    private readonly object _gate = new();
-
-    public LeakyBucketRateLimiter(int capacity, double leakRatePerSecond)
+    public LeakyBucketRateLimiter(int bucketCapacity, double leakRate)
     {
-        if (capacity <= 0)
-            throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity must be positive.");
-        if (leakRatePerSecond <= 0)
-            throw new ArgumentOutOfRangeException(nameof(leakRatePerSecond), "Leak rate must be positive.");
-
-        _capacity = capacity;
-        _leakRatePerSecond = leakRatePerSecond;
-        _waterLevel = 0;
-        _lastLeakTicks = Environment.TickCount64;
-
+        maxCapacity = bucketCapacity;
+        leakRatePerSec = leakRate;
+        waterInBucket = 0;
+        lastLeakTime = DateTime.Now;
     }
 
-    public int Capacity => _capacity;
-
-    public double LeakRatePerSecond => _leakRatePerSecond;
-
-    public bool TryAcquire() => TryAcquire(1);
-
-    public bool TryAcquire(int permits)
+    public bool AllowRequest()
     {
-        if (permits <= 0)
-            throw new ArgumentOutOfRangeException(nameof(permits), "Permits must be positive.");
-
-        lock (_gate)
+        lock (lockObj)
         {
-            Leak();
-            if (_waterLevel + permits > _capacity)
-                return false;
+            LeakWater();
 
-            _waterLevel += permits;
-            return true;
+            // one request = 1 unit of water
+            if (waterInBucket + 1 <= maxCapacity)
+            {
+                waterInBucket = waterInBucket + 1;
+                return true;
+            }
+
+            return false;
         }
     }
 
-    private void Leak()
+    private void LeakWater()
     {
-        var now = Environment.TickCount64;
-        var elapsedMs = now - _lastLeakTicks;
-        if (elapsedMs <= 0)
-            return;
+        DateTime now = DateTime.Now;
+        double secondsPassed = (now - lastLeakTime).TotalSeconds;
 
-        var leaked = elapsedMs / 1000.0 * _leakRatePerSecond;
-        _waterLevel = Math.Max(0, _waterLevel - leaked);
-        _lastLeakTicks = now;
+        if (secondsPassed > 0)
+        {
+            waterInBucket = waterInBucket - (secondsPassed * leakRatePerSec);
+            if (waterInBucket < 0)
+            {
+                waterInBucket = 0;
+            }
+            lastLeakTime = now;
+        }
     }
 }
-

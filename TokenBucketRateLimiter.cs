@@ -1,65 +1,52 @@
 namespace RateLimitingAlgorithms;
 
-public sealed class TokenBucketRateLimiter : IRateLimiter
+// Token Bucket - each request needs 1 token; tokens refill over time
+public class TokenBucketRateLimiter
 {
-    private readonly int _capacity;
+    private int maxTokens;
+    private double tokensPerSecond;
+    private double currentTokens;
+    private DateTime lastRefillTime;
+    private object lockObj = new object();
 
-
-    private readonly double _refillRatePerSecond;
-    private double _availableTokens;
-    private long _lastRefillTicks;
-    private readonly object _gate = new();
-
-    public TokenBucketRateLimiter(int capacity, double refillRatePerSecond)
+    public TokenBucketRateLimiter(int bucketSize, double refillRate)
     {
-        if (capacity <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity must be positive.");
-        }
-
-
-        if (refillRatePerSecond <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(refillRatePerSecond), "Refill rate must be positive.");
-        }
-
-        _capacity = capacity;
-        _refillRatePerSecond = refillRatePerSecond;
-        _availableTokens = capacity;
-        _lastRefillTicks = Environment.TickCount64;
+        maxTokens = bucketSize;
+        tokensPerSecond = refillRate;
+        currentTokens = bucketSize;
+        lastRefillTime = DateTime.Now;
     }
 
-    public int Capacity => _capacity;
-
-    public double RefillRatePerSecond => _refillRatePerSecond;
-
-    public bool TryAcquire() => TryAcquire(1);
-
-    public bool TryAcquire(int permits)
+    // returns true if request is allowed, false if rate limit exceeded
+    public bool AllowRequest()
     {
-        if (permits <= 0)
-            throw new ArgumentOutOfRangeException(nameof(permits), "Permits must be positive.");
-
-        lock (_gate)
+        lock (lockObj)
         {
-            Refill();
-            if (_availableTokens < permits)
-                return false;
+            RefillTokens();
 
-            _availableTokens -= permits;
-            return true;
+            if (currentTokens >= 1)
+            {
+                currentTokens = currentTokens - 1;
+                return true;
+            }
+
+            return false;
         }
     }
 
-    private void Refill()
+    private void RefillTokens()
     {
-        var now = Environment.TickCount64;
-        var elapsedMs = now - _lastRefillTicks;
-        if (elapsedMs <= 0)
-            return;
+        DateTime now = DateTime.Now;
+        double secondsPassed = (now - lastRefillTime).TotalSeconds;
 
-        var added = elapsedMs / 1000.0 * _refillRatePerSecond;
-        _availableTokens = Math.Min(_capacity, _availableTokens + added);
-        _lastRefillTicks = now;
+        if (secondsPassed > 0)
+        {
+            currentTokens = currentTokens + (secondsPassed * tokensPerSecond);
+            if (currentTokens > maxTokens)
+            {
+                currentTokens = maxTokens;
+            }
+            lastRefillTime = now;
+        }
     }
 }
